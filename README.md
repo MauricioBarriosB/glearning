@@ -1,8 +1,8 @@
 # G-Learning
 
-App para aprender **guitarra eléctrica**: escalas, acordes y modos con visualización en el diapasón, tablatura y **reproducción con audio real**, además de un módulo para que cada usuario **cree y guarde sus propias escalas**, gestión de cuenta y un panel de administración.
+Aplicación web para aprender **guitarra eléctrica**: escalas, acordes y modos con visualización en el diapasón, tablatura y **reproducción con audio real**, además de un módulo para que cada usuario **cree y guarde sus propias escalas**, gestión de cuenta y un panel de administración.
 
-> 🎸 **Live App:** [mauriciobarriosb.github.io/glearning](https://mauriciobarriosb.github.io/glearning)
+> **Live App:** [mauriciobarriosb.github.io/glearning](https://mauriciobarriosb.github.io/glearning)
 
 Este documento describe en detalle las características, la arquitectura y las convenciones del frontend.
 
@@ -27,7 +27,7 @@ Este documento describe en detalle las características, la arquitectura y las c
 
 ---
 
-## Tech stack
+## 1.Tech stack
 
 | Área | Tecnología |
 |------|------------|
@@ -45,7 +45,7 @@ La app se sirve bajo la ruta base **`/glearning/`** (ver `vite.config.ts`).
 
 ---
 
-## Puesta en marcha
+## 2.Puesta en marcha
 
 ```bash
 npm install
@@ -60,7 +60,7 @@ Requisitos:
 
 ---
 
-## Variables de entorno
+## 3.Variables de entorno
 
 Todas las variables usan el prefijo `VITE_APP_` y se inyectan en tiempo de build/arranque (reinicia Vite si las cambias).
 
@@ -75,7 +75,7 @@ Todas las variables usan el prefijo `VITE_APP_` y se inyectan en tiempo de build
 
 ---
 
-## Scripts
+## 4.Scripts
 
 | Script | Acción |
 |--------|--------|
@@ -87,7 +87,7 @@ Todas las variables usan el prefijo `VITE_APP_` y se inyectan en tiempo de build
 
 ---
 
-## Características de la aplicación
+## 5.Características de la aplicación
 
 ### 🏠 Home
 Página de aterrizaje, llamadas a la acción (explorar escalas / crear escala), tarjetas de cada módulo (Escalas, Acordes, Modos, Mis escalas) y una sección de "todo lo que puedes hacer" con iconografía.
@@ -134,7 +134,7 @@ Módulo para que el usuario **cree sus propias escalas** como una **secuencia de
 
 ---
 
-## Rutas
+## 6.Rutas
 
 | Ruta | Página | Protección | Contenido |
 |------|--------|------------|-----------|
@@ -155,7 +155,7 @@ Módulo para que el usuario **cree sus propias escalas** como una **secuencia de
 
 ---
 
-## Arquitectura
+## 7.Arquitectura
 
 ### Providers
 ```
@@ -179,7 +179,7 @@ Módulo para que el usuario **cree sus propias escalas** como una **secuencia de
 
 ---
 
-## Capa de datos y seguridad
+## 8.Capa de datos y seguridad
 
 Cliente Axios central en `services/apiConfig.ts`:
 
@@ -198,7 +198,7 @@ Servicios de dominio:
 
 ---
 
-## Motor de audio
+## 9.Motor de audio
 
 `modules/scales/hooks/useScalePlayer.ts` (Tone.js):
 
@@ -211,7 +211,7 @@ Los acordes se aprovechan en **Mis escalas** (notas en el mismo traste = mismo p
 
 ---
 
-## Teoría musical (helpers)
+## 10.Teoría musical (helpers)
 
 `helpers/music.ts` — utilidades puras:
 - `CHROMATIC`, `DEGREE_LABELS`, `STANDARD_TUNING`.
@@ -227,7 +227,7 @@ Componentes de visualización reutilizables (`modules/scales/components`):
 
 ---
 
-## Estructura del proyecto
+## 11.Estructura del proyecto
 
 ```
 src/
@@ -269,7 +269,7 @@ Convención de módulo: `pages/`, `components/`, `hooks/` y, cuando aplica, serv
 
 ---
 
-## Alias de importación
+## 12.Alias de importación
 
 Definidos en `vite.config.ts` (y en `tsconfig`):
 
@@ -283,7 +283,7 @@ Definidos en `vite.config.ts` (y en `tsconfig`):
 
 ---
 
-## Integración con el backend
+## 13.Integración con el backend
 
 El backend (CodeIgniter 4 + SQL) expone la API bajo `/api`. 
 
@@ -308,7 +308,7 @@ La afinación se guarda denormalizada para poder renderizar la tablatura de form
 
 ---
 
-## Convenciones
+## 14.Convenciones
 
 - **TypeScript estricto**; tipos de dominio en `src/types/index.ts` (forma camelCase que espeja `formatPublic` del backend).
 - **Estado de servidor** con React Query (queries con `queryKey`, mutaciones que invalidan la query correspondiente).
