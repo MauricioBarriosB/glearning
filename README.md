@@ -1,6 +1,8 @@
-# GLearning
+# G-Learning
 
-Aplicación web para aprender **guitarra eléctrica**: escalas, acordes y modos con visualización en el diapasón, tablatura y **reproducción con audio real**, además de un módulo para que cada usuario **cree y guarde sus propias escalas**, gestión de cuenta y un panel de administración.
+App para aprender **guitarra eléctrica**: escalas, acordes y modos con visualización en el diapasón, tablatura y **reproducción con audio real**, además de un módulo para que cada usuario **cree y guarde sus propias escalas**, gestión de cuenta y un panel de administración.
+
+> 🎸 **Live App:** [mauriciobarriosb.github.io/glearning](https://mauriciobarriosb.github.io/glearning)
 
 Este documento describe en detalle las características, la arquitectura y las convenciones del frontend.
 
@@ -181,7 +183,7 @@ Módulo para que el usuario **cree sus propias escalas** como una **secuencia de
 
 Cliente Axios central en `services/apiConfig.ts`:
 
-- **Bearer token**: adjunta `Authorization: Bearer <accessToken>` si existe.
+- **Bearer token**: adjunta `Authorization: Bearer <accessToken>`.
 - **Firma HMAC**: **toda** petición se firma (`services/sign.ts`) con las cabeceras `X-Client-Id`, `X-Timestamp`, `X-Nonce`, `X-Signature`. La cadena canónica es `clientId + "\n" + METHOD + "\n" + /api{path} + "\n" + timestamp + "\n" + nonce` y debe coincidir con el `ClientAuthFilter` del backend.
 - **Refresh automático**: ante un `401` (fuera de endpoints de auth) intenta **un** refresh del token y reintenta la petición; colapsa 401 concurrentes en un solo round-trip. Si falla, limpia la sesión y redirige a `/login`.
 - **Normalización de errores**: convierte cualquier error al envelope `{ code, message, userMessage }` y notifica a los listeners (toasts vía `ApiErrorNotification`). Usa `getErrorMessage()` para mostrar mensajes al usuario.
