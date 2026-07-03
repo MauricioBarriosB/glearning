@@ -13,6 +13,11 @@ interface TabStaffProps {
      * ocupa su propia columna. `activeIndex` se compara contra la columna.
      */
     columns?: number[];
+    /**
+     * Divisores cosméticos: líneas verticales dibujadas en el hueco anterior a la columna
+     * indicada (0..nº de columnas). Solo decorativos; no afectan nada.
+     */
+    dividers?: number[];
 }
 
 const LEFT_PAD = 40;
@@ -21,7 +26,7 @@ const ROW_H = 24;
 const TOP_PAD = 12;
 const BOTTOM_PAD = 12;
 
-export default function TabStaff({ strings, positions, activeIndex = -1, columns }: Readonly<TabStaffProps>) {
+export default function TabStaff({ strings, positions, activeIndex = -1, columns, dividers }: Readonly<TabStaffProps>) {
     const stringCount = strings.length;
     const colOf = (i: number) => columns?.[i] ?? i;
     const columnCount = positions.length > 0 ? Math.max(...positions.map((_, i) => colOf(i))) + 1 : 0;
@@ -59,6 +64,12 @@ export default function TabStaff({ strings, positions, activeIndex = -1, columns
 
                 {/* Barra vertical inicial */}
                 <line x1={LEFT_PAD} y1={yFor(stringCount - 1)} x2={LEFT_PAD} y2={boardBottom} stroke="#52525b" strokeWidth={2} />
+
+                {/* Divisores cosméticos (líneas verticales blancas) */}
+                {dividers?.map((p) => {
+                    const x = LEFT_PAD + p * COL_W;
+                    return <line key={`divider-${p}`} x1={x} y1={yFor(stringCount - 1) - 4} x2={x} y2={boardBottom + 4} stroke="#ffffff" strokeWidth={2} />;
+                })}
 
                 {/* Números de traste por columna */}
                 {positions.map((pos, i) => {

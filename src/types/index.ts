@@ -285,6 +285,11 @@ export interface CustomScale {
     strings: string[];
     /** Secuencia de notas en el orden en que se tocan. */
     notes: TabNote[];
+    /**
+     * Divisores cosméticos: cada valor es el nº de notas que quedan a su izquierda (0..N), y se
+     * dibuja como una línea vertical en ese hueco de la tablatura. No afectan la reproducción.
+     */
+    dividers: number[];
     description: string | null;
     difficulty: Difficulty;
     createdAt: string | null;
@@ -299,6 +304,7 @@ export interface CreateCustomScaleRequest {
     tuningName: string;
     strings: string[];
     notes: TabNote[];
+    dividers?: number[];
     description?: string | null;
     difficulty?: Difficulty;
 }
@@ -310,6 +316,7 @@ export interface UpdateCustomScaleRequest {
     tuningName?: string;
     strings?: string[];
     notes?: TabNote[];
+    dividers?: number[];
     description?: string | null;
     difficulty?: Difficulty;
 }

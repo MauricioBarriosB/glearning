@@ -23,7 +23,6 @@ import DifficultyChip from "@components/DifficultyChip";
 import { getErrorMessage } from "@services/apiConfig";
 import { CHROMATIC, pitchAtFret, pitchToMidi } from "@/helpers/music";
 import type { CustomScale, Difficulty, FretPosition, TabNote, Tuning } from "@/types";
-import TabStaff from "@modules/scales/components/TabStaff";
 import { useScalePlayer, type PlayEvent } from "@modules/scales/hooks/useScalePlayer";
 import { useCreateCustomScale, useDeleteCustomScale, useUpdateCustomScale } from "../hooks/useCustomScales";
 import TabEditor from "./TabEditor";
@@ -72,6 +71,8 @@ export default function CustomScaleEditor({
     const [name, setName] = useState("");
     const [tuningId, setTuningId] = useState(defaultTuningId);
     const [notes, setNotes] = useState<TabNote[]>([]);
+    // Divisores cosméticos: posición (nº de notas a la izquierda) de cada línea vertical.
+    const [dividers, setDividers] = useState<number[]>([]);
     const [description, setDescription] = useState("");
     const [difficulty, setDifficulty] = useState<Difficulty>("beginner");
     const [touched, setTouched] = useState(false);
@@ -101,6 +102,7 @@ export default function CustomScaleEditor({
         setName(scale?.name ?? "");
         setTuningId(scale?.tuningId ?? defaultTuningId);
         setNotes(scale?.notes ? [...scale.notes] : []);
+        setDividers(scale?.dividers ? [...scale.dividers] : []);
         setDescription(scale?.description ?? "");
         setDifficulty(scale?.difficulty ?? "beginner");
         setTouched(false);
@@ -110,42 +112,27 @@ export default function CustomScaleEditor({
     const tuning = useMemo(() => tunings.find((t) => t.id === tuningId) ?? tunings[0], [tuningId, tunings]);
     const strings = tuning?.strings ?? [];
 
-    // Pasos de reproducción: trastes usados en orden ascendente (izquierda→derecha).
-    const stepFrets = useMemo(() => [...new Set(notes.map((n) => n.fret))].sort((a, b) => a - b), [notes]);
+    // La secuencia se toca de izquierda a derecha, una nota por columna (en el orden en que se
+    // agregaron), por lo que una misma cuerda+traste puede repetirse. Se descartan notas cuya
+    // cuerda ya no exista en la afinación actual.
+    const validNotes = useMemo(() => notes.filter((n) => n.string < strings.length), [notes, strings]);
 
-    // Posiciones para la tablatura de solo lectura, con su columna = paso (traste).
-    // Notas del mismo traste comparten columna → se apilan (acorde).
-    const { positions, columns } = useMemo(() => {
-        const valid = notes
-            .filter((n) => n.string < strings.length)
-            .sort((a, b) => a.fret - b.fret || a.string - b.string);
-        return {
-            positions: valid.map((n) => toPosition(n, strings)),
-            columns: valid.map((n) => stepFrets.indexOf(n.fret)),
-        };
-    }, [notes, strings, stepFrets]);
+    // Posiciones para la tablatura: cada nota ocupa su propia columna (= orden de reproducción).
+    const positions = useMemo(() => validNotes.map((n) => toPosition(n, strings)), [validNotes, strings]);
 
-    // Un evento por traste; toca a la vez todas las notas de ese traste (distintas cuerdas).
+    // Un evento por nota, en orden de secuencia.
     const events = useMemo<PlayEvent[]>(
-        () =>
-            stepFrets.map((fret, i) => ({
-                pitch: notes
-                    .filter((n) => n.fret === fret && n.string < strings.length)
-                    .map((n) => pitchAtFret(strings[n.string], fret)),
-                tabIndex: i,
-            })),
-        [stepFrets, notes, strings],
+        () => validNotes.map((n, i) => ({ pitch: pitchAtFret(strings[n.string], n.fret), tabIndex: i })),
+        [validNotes, strings],
     );
 
-    // Aplica la dirección de reproducción sin cambiar el tabIndex de cada paso (así el
-    // resaltado sigue apuntando a la columna correcta).
+    // Aplica la dirección de reproducción sin cambiar el tabIndex de cada nota (así el resaltado
+    // sigue apuntando a la columna correcta).
     const orderedEvents = useMemo<PlayEvent[]>(() => {
         if (direction === "down") return [...events].reverse();
         if (direction === "updown") return events.concat([...events].reverse().slice(1));
         return events;
     }, [events, direction]);
-
-    const activeFret = activeIndex >= 0 ? stepFrets[activeIndex] ?? -1 : -1;
 
     // Reinicia la reproducción al cambiar la secuencia si está sonando.
     const sequenceKey = `${tuningId}|${notes.map((n) => `${n.string}.${n.fret}`).join(",")}|${direction}|${loop}`;
@@ -161,11 +148,15 @@ export default function CustomScaleEditor({
         if (playingRef.current) setLiveMetronome(metronome);
     }, [metronome, setLiveMetronome]);
 
-    // Al cambiar de afinación, descarta notas cuya cuerda ya no exista.
+    // Al cambiar de afinación, descarta notas cuya cuerda ya no exista y recorta divisores que
+    // queden fuera de la nueva secuencia (cosméticos, no vale la pena reubicarlos con precisión).
     const handleTuningChange = (nextId: string) => {
         const next = tunings.find((t) => t.id === nextId);
         setTuningId(nextId);
-        if (next) setNotes((prev) => prev.filter((n) => n.string < next.strings.length));
+        if (!next) return;
+        const kept = notes.filter((n) => n.string < next.strings.length);
+        setNotes(kept);
+        setDividers((prev) => [...new Set(prev.filter((p) => p <= kept.length))].sort((a, b) => a - b));
     };
 
     const handlePlay = () => {
@@ -193,6 +184,7 @@ export default function CustomScaleEditor({
             tuningName: tuning?.name ?? "",
             strings,
             notes,
+            dividers,
             description: description.trim() || null,
             difficulty,
         };
@@ -355,7 +347,10 @@ export default function CustomScaleEditor({
                         size="sm"
                         variant="flat"
                         startContent={<Eraser size={16} />}
-                        onPress={() => setNotes([])}
+                        onPress={() => {
+                            setNotes([]);
+                            setDividers([]);
+                        }}
                         isDisabled={notes.length === 0}
                     >
                         Limpiar
@@ -368,16 +363,27 @@ export default function CustomScaleEditor({
                 <CardHeader className="flex-col items-start gap-0.5">
                     <h3 className="text-sm font-semibold text-default-600">Tablatura</h3>
                     <p className="text-xs text-default-400">
-                        Haz clic en la tablatura para agregar tus notas (vuelve a hacer clic para quitarlas). El número
-                        pequeño indica el orden de reproducción.
+                        Elige una cuerda, escribe el número de traste y pulsa «Agregar nota»: cada nota se añade al final
+                        de la secuencia, así que puedes repetir la misma cuerda y traste las veces que quieras. Haz clic
+                        en una nota de la tablatura para quitarla. El número inferior indica la posición de cada nota en
+                        la secuencia (de izquierda a derecha); la reproducción recorre esa secuencia según la dirección
+                        elegida (ascendente, descendente o ida y vuelta). «Agregar divisor» inserta una línea vertical
+                        cosmética al final (clic en ella para quitarla); no afecta la reproducción.
                     </p>
                 </CardHeader>
                 <CardBody>
-                    <TabEditor strings={strings} notes={notes} onChange={setNotes} activeFret={activeFret} />
+                    <TabEditor
+                        strings={strings}
+                        notes={notes}
+                        onChange={setNotes}
+                        dividers={dividers}
+                        onDividersChange={setDividers}
+                        activeIndex={activeIndex}
+                    />
                 </CardBody>
             </Card>
 
-            {/* Info + secuencia */}
+            {/* Info de la escala */}
             <Card className="border border-default-100 bg-content1">
                 <CardHeader className="flex flex-wrap items-center gap-2">
                     <Music4 className="text-primary" size={20} />
@@ -391,24 +397,21 @@ export default function CustomScaleEditor({
                     {description.trim() && <p className="text-default-500">{description}</p>}
                     {noteNames.length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                            {noteNames.map((note, i) => (
-                                <Chip key={`${note}-${i}`} variant="flat" color={i === 0 ? "primary" : "default"}>
-                                    {note}
-                                </Chip>
-                            ))}
+                            {noteNames.map((note, i) => {
+                                const isActive = i === activeIndex;
+                                return (
+                                    <Chip
+                                        key={`${note}-${i}`}
+                                        // La nota que suena se resalta en sólido; la primera (raíz) queda marcada.
+                                        variant={isActive ? "solid" : "flat"}
+                                        color={isActive || i === 0 ? "primary" : "default"}
+                                        className={isActive ? "scale-110 transition-transform" : "transition-transform"}
+                                    >
+                                        {note}
+                                    </Chip>
+                                );
+                            })}
                         </div>
-                    )}
-                </CardBody>
-            </Card>
-
-            {/* Secuencia en tablatura (solo lectura, con la nota que suena resaltada) */}
-            <Card className="border border-default-100 bg-content1">
-                <CardHeader className="pb-0 text-sm font-semibold text-default-500">Secuencia</CardHeader>
-                <CardBody>
-                    {positions.length > 0 ? (
-                        <TabStaff strings={strings} positions={positions} columns={columns} activeIndex={activeIndex} />
-                    ) : (
-                        <p className="text-sm text-default-400">Agrega notas en la tablatura de arriba para ver la secuencia.</p>
                     )}
                 </CardBody>
             </Card>

@@ -39,17 +39,14 @@ function toPosition(note: TabNote, strings: string[]): FretPosition {
 }
 
 function DetailBody({ scale }: Readonly<{ scale: CustomScale }>) {
-    // Ordena por traste (izquierda→derecha); notas del mismo traste comparten columna.
-    const { positions, columns } = useMemo(() => {
-        const stepFrets = [...new Set(scale.notes.map((n) => n.fret))].sort((a, b) => a - b);
-        const valid = scale.notes
-            .filter((n) => n.string < scale.strings.length)
-            .sort((a, b) => a.fret - b.fret || a.string - b.string);
-        return {
-            positions: valid.map((n) => toPosition(n, scale.strings)),
-            columns: valid.map((n) => stepFrets.indexOf(n.fret)),
-        };
-    }, [scale]);
+    // Cada nota ocupa su propia columna, en el orden en que se agregaron (orden de reproducción).
+    const positions = useMemo(
+        () =>
+            scale.notes
+                .filter((n) => n.string < scale.strings.length)
+                .map((n) => toPosition(n, scale.strings)),
+        [scale],
+    );
     return (
         <ModalBody className="gap-4 pb-6">
             {scale.description && <p className="text-default-500">{scale.description}</p>}
@@ -63,7 +60,7 @@ function DetailBody({ scale }: Readonly<{ scale: CustomScale }>) {
                 <DifficultyChip level={scale.difficulty} />
             </div>
             {positions.length > 0 ? (
-                <TabStaff strings={scale.strings} positions={positions} columns={columns} />
+                <TabStaff strings={scale.strings} positions={positions} dividers={scale.dividers} />
             ) : (
                 <p className="text-sm text-default-400">Esta escala no tiene notas.</p>
             )}
