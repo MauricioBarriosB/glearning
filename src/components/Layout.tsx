@@ -67,7 +67,6 @@ export default function Layout({ children }: Readonly<LayoutProps>) {
         >
             <Navbar isMenuOpen={menuOpen} onMenuOpenChange={setMenuOpen} maxWidth="xl" isBordered>
                 <NavbarContent>
-                    <NavbarMenuToggle className="sm:hidden" />
                     <NavbarBrand>
                         <Link to="/" className="flex items-center gap-2 font-semibold">
                             <span className="flex h-8 w-8 items-center justify-center rounded-medium bg-primary text-primary-foreground">
@@ -177,9 +176,17 @@ export default function Layout({ children }: Readonly<LayoutProps>) {
                             </NavbarItem>
                         </>
                     )}
+                    <NavbarMenuToggle className="sm:hidden" />
                 </NavbarContent>
 
-                <NavbarMenu>
+                <NavbarMenu
+                    motionProps={{
+                        initial: { opacity: 0 },
+                        animate: { opacity: 1 },
+                        exit: { opacity: 0 },
+                        transition: { duration: 0.2, ease: "easeOut" },
+                    }}
+                >
                     {navLinks.map((link) => (
                         <NavbarMenuItem key={link.to} isActive={isActive(link.to)}>
                             <HeroLink

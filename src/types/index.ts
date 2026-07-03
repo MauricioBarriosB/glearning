@@ -336,3 +336,35 @@ export interface UpdateUserRequest {
     role?: UserRole;
     password?: string;
 }
+
+/**
+ * Contenido editable de la Home (tablas contents_features / contents_highlights).
+ * `icon` es el nombre de un icono de lucide-react (ej. "AudioLines"), mapeado a
+ * su componente en el front.
+ */
+export interface HomeFeature {
+    id: number;
+    title: string;
+    description: string;
+    to: string;
+    icon: string;
+}
+
+export interface HomeHighlight {
+    id: number;
+    title: string;
+    description: string;
+    icon: string;
+}
+
+/**
+ * Sección de ayuda de un módulo (tabla contents_help). Cada módulo ("custom-scales", …)
+ * tiene varias secciones que se muestran en su pop-up de ayuda. `icon` es el nombre de
+ * un icono de lucide-react, mapeado a su componente en el front.
+ */
+export interface HelpSection {
+    id: number;
+    title: string;
+    content: string;
+    icon: string;
+}

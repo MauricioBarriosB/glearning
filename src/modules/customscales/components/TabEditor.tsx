@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button, Input, Select, SelectItem } from "@heroui/react";
-import { Plus, SeparatorVertical } from "lucide-react";
+import { Eraser, Plus, SeparatorVertical } from "lucide-react";
 import { pitchAtFret } from "@/helpers/music";
 import type { TabNote } from "@/types";
 
@@ -82,10 +82,13 @@ export default function TabEditor({
 
     return (
         <div className="space-y-4">
-            {/* Alta de nota: cuerda + número de traste */}
-            <div className="flex flex-wrap items-end gap-3">
+            {/* Alta de nota: cuerda + número de traste.
+                Etiquetas al lado (outside-left) para que cada control sea de una sola altura y
+                quede alineado verticalmente al centro con los botones de la fila. */}
+            <div className="flex flex-wrap items-center gap-3">
                 <Select
                     label="Cuerda"
+                    labelPlacement="outside-left"
                     size="sm"
                     selectedKeys={[String(safeString)]}
                     onSelectionChange={(keys) => {
@@ -107,6 +110,7 @@ export default function TabEditor({
                 </Select>
                 <Input
                     label="Traste"
+                    labelPlacement="outside-left"
                     size="sm"
                     type="number"
                     min={0}
@@ -137,6 +141,18 @@ export default function TabEditor({
                     isDisabled={notes.length === 0 || !onDividersChange}
                 >
                     Agregar divisor
+                </Button>
+                <Button
+                    size="sm"
+                    variant="flat"
+                    startContent={<Eraser size={16} />}
+                    onPress={() => {
+                        onChange([]);
+                        onDividersChange?.([]);
+                    }}
+                    isDisabled={notes.length === 0}
+                >
+                    Limpiar
                 </Button>
             </div>
 

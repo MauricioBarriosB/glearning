@@ -18,8 +18,9 @@ import {
     Switch,
     Textarea,
 } from "@heroui/react";
-import { Eraser, Music4, Save, Square, Trash2, Volume2 } from "lucide-react";
+import { Music4, Save, Square, Trash2, Volume2 } from "lucide-react";
 import DifficultyChip from "@components/DifficultyChip";
+import HelpButton from "@components/HelpButton";
 import { getErrorMessage } from "@services/apiConfig";
 import { CHROMATIC, pitchAtFret, pitchToMidi } from "@/helpers/music";
 import type { CustomScale, Difficulty, FretPosition, TabNote, Tuning } from "@/types";
@@ -225,6 +226,7 @@ export default function CustomScaleEditor({
                 <CardHeader className="flex items-center justify-between gap-2">
                     <h2 className="text-lg font-semibold">{isEdit ? "Editar escala" : "Nueva escala"}</h2>
                     <div className="flex items-center gap-2">
+                        <HelpButton module="custom-scales" title="Ayuda · Mis escalas" />
                         {isEdit && (
                             <Button
                                 size="sm"
@@ -301,19 +303,26 @@ export default function CustomScaleEditor({
 
             {/* Controles de audio + limpiar, en una sola fila arriba de la tablatura */}
             <Card className="border border-default-100 bg-content1">
-                <CardBody className="flex flex-row! flex-wrap items-center gap-4">
-                    <Slider
-                        label="Velocidad (BPM)"
-                        size="sm"
-                        minValue={40}
-                        maxValue={240}
-                        step={5}
-                        value={bpm}
-                        onChange={(value) => setBpm(Array.isArray(value) ? value[0] : value)}
-                        className="w-52"
-                    />
+                <CardBody className="flex flex-row! flex-wrap items-center! gap-4">
+                    {/* Etiqueta al lado (no encima) para que el control sea de una sola altura y
+                        quede alineado verticalmente al centro con el resto de la fila. */}
+                    <div className="flex items-center gap-3">
+                        <span className="shrink-0 text-sm text-default-500">Velocidad</span>
+                        <Slider
+                            aria-label="Velocidad (BPM)"
+                            size="sm"
+                            minValue={40}
+                            maxValue={240}
+                            step={5}
+                            value={bpm}
+                            onChange={(value) => setBpm(Array.isArray(value) ? value[0] : value)}
+                            className="w-40"
+                        />
+                        <span className="w-16 shrink-0 text-sm tabular-nums text-default-500">{bpm} BPM</span>
+                    </div>
                     <Select
                         label="Dirección"
+                        labelPlacement="outside-left"
                         size="sm"
                         selectedKeys={[direction]}
                         onSelectionChange={(keys) => {
@@ -343,33 +352,13 @@ export default function CustomScaleEditor({
                     >
                         {isPlaying ? "Detener" : "Reproducir"}
                     </Button>
-                    <Button
-                        size="sm"
-                        variant="flat"
-                        startContent={<Eraser size={16} />}
-                        onPress={() => {
-                            setNotes([]);
-                            setDividers([]);
-                        }}
-                        isDisabled={notes.length === 0}
-                    >
-                        Limpiar
-                    </Button>
                 </CardBody>
             </Card>
 
             {/* Tablatura editable — el usuario agrega sus propias notas */}
             <Card className="border border-default-100 bg-content1">
                 <CardHeader className="flex-col items-start gap-0.5">
-                    <h3 className="text-sm font-semibold text-default-600">Tablatura</h3>
-                    <p className="text-xs text-default-400">
-                        Elige una cuerda, escribe el número de traste y pulsa «Agregar nota»: cada nota se añade al final
-                        de la secuencia, así que puedes repetir la misma cuerda y traste las veces que quieras. Haz clic
-                        en una nota de la tablatura para quitarla. El número inferior indica la posición de cada nota en
-                        la secuencia (de izquierda a derecha); la reproducción recorre esa secuencia según la dirección
-                        elegida (ascendente, descendente o ida y vuelta). «Agregar divisor» inserta una línea vertical
-                        cosmética al final (clic en ella para quitarla); no afecta la reproducción.
-                    </p>
+                    <h2 className="text-md font-semibold">Tablatura</h2>
                 </CardHeader>
                 <CardBody>
                     <TabEditor
@@ -387,7 +376,7 @@ export default function CustomScaleEditor({
             <Card className="border border-default-100 bg-content1">
                 <CardHeader className="flex flex-wrap items-center gap-2">
                     <Music4 className="text-primary" size={20} />
-                    <h2 className="text-xl font-semibold">{name.trim() || "(sin nombre)"}</h2>
+                    <h2 className="text-md font-semibold">{name.trim() || "(sin nombre)"}</h2>
                     <DifficultyChip level={difficulty} />
                     <Chip size="sm" variant="flat" className="ml-auto">
                         {notes.length} {notes.length === 1 ? "nota" : "notas"}

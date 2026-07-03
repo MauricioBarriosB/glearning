@@ -5,7 +5,16 @@
  */
 
 import { apiClient } from "./apiConfig";
-import type { ChordShape, ModeFamily, OpenChord, ScaleDef, Tuning } from "@/types";
+import type {
+    ChordShape,
+    HelpSection,
+    HomeFeature,
+    HomeHighlight,
+    ModeFamily,
+    OpenChord,
+    ScaleDef,
+    Tuning,
+} from "@/types";
 
 interface Envelope<T> {
     success: boolean;
@@ -26,4 +35,17 @@ export async function fetchChords(): Promise<{ shapes: ChordShape[]; open: OpenC
 
 export async function fetchModes(): Promise<ModeFamily[]> {
     return apiClient.get<Envelope<ModeFamily[]>>("/modes").then((r) => r.data.data);
+}
+
+export async function fetchHomeFeatures(): Promise<HomeFeature[]> {
+    return apiClient.get<Envelope<HomeFeature[]>>("/contents/features").then((r) => r.data.data);
+}
+
+export async function fetchHomeHighlights(): Promise<HomeHighlight[]> {
+    return apiClient.get<Envelope<HomeHighlight[]>>("/contents/highlights").then((r) => r.data.data);
+}
+
+/** GET /api/contents/help/:module — secciones de ayuda de un módulo. */
+export async function fetchHelpSections(module: string): Promise<HelpSection[]> {
+    return apiClient.get<Envelope<HelpSection[]>>(`/contents/help/${module}`).then((r) => r.data.data);
 }
