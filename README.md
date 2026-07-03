@@ -55,7 +55,7 @@ npm run dev
 
 Requisitos:
 
-- El **backend** (CodeIgniter 4 + SQL, en `../backend`) debe estar en ejecución, ya que la app y data es procesada mediante API.
+- El **backend** (CodeIgniter 4 + SQL, en `../backend`) debe estar en ejecución, ya que la data es procesada mediante API.
 - `VITE_APP_API_URL` debe apuntar a la API, y las credenciales de firma HMAC (`VITE_APP_API_CLIENT_ID` / `VITE_APP_API_CLIENT_SECRET`) deben **coincidir** con las del backend (`api.apiClientId` / `api.apiClientSecret`).
 
 ---
